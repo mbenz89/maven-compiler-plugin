@@ -157,6 +157,14 @@ public class TestCompilerMojo
     @Parameter( defaultValue = "${project.testClasspathElements}", readonly = true )
     private List<String> testPath;
 
+    /**
+     * A list of additional filesystem paths to include on the compile class path beyond the resolved dependency
+     * set.  This is useful in conjunction with the dependency plugin for cases where there are items that must not
+     * be included in other phases of the build, but are nevertheless required during compilation.
+     */
+    @Parameter
+    private List<String> additionalClasspathElements = new ArrayList<>();
+
     private LocationManager locationManager = new LocationManager();
 
     private Map<String, JavaModuleDescriptor> pathElements;
@@ -229,7 +237,10 @@ public class TestCompilerMojo
             {
                 pathElements = Collections.emptyMap();
                 modulepathElements = Collections.emptyList();
-                classpathElements = testPath;
+                List<String> list = new ArrayList<>( testPath.size() + additionalClasspathElements.size() );
+                list.addAll( testPath );
+                list.addAll( additionalClasspathElements );
+                classpathElements = list;
                 return;
             }
         }
@@ -237,14 +248,17 @@ public class TestCompilerMojo
         {
             pathElements = Collections.emptyMap();
             modulepathElements = Collections.emptyList();
-            classpathElements = testPath;
+            List<String> list = new ArrayList<>( testPath.size() + additionalClasspathElements.size() );
+            list.addAll( testPath );
+            list.addAll( additionalClasspathElements );
+            classpathElements = list;
             return;
         }
             
         if ( hasTestModuleDescriptor )
         {
             modulepathElements = testPath;
-            classpathElements = Collections.emptyList();
+            classpathElements = new ArrayList<>( additionalClasspathElements );
 
             if ( mainModuleDescriptor.exists() )
             {
@@ -291,7 +305,10 @@ public class TestCompilerMojo
                 pathElements.putAll( result.getPathElements() );
                                 
                 modulepathElements = result.getModulepathElements().keySet();
-                classpathElements = result.getClasspathElements();
+                List<String> list = new ArrayList<>( result.getClasspathElements().size() + additionalClasspathElements.size() );
+                list.addAll( result.getClasspathElements() );
+                list.addAll( additionalClasspathElements );
+                classpathElements = list;
                 
                 if ( compilerArgs == null )
                 {
@@ -316,7 +333,10 @@ public class TestCompilerMojo
             else
             {
                 modulepathElements = Collections.emptyList();
-                classpathElements = testPath;
+                List<String> list = new ArrayList<>( compilePath.size() + additionalClasspathElements.size() );
+                list.addAll( compilePath );
+                list.addAll( additionalClasspathElements );
+                classpathElements = list;
             }
         }
     }
