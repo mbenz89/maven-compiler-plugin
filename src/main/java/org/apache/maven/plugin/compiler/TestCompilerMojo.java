@@ -106,7 +106,7 @@ public class TestCompilerMojo
 
     /**
      * the -release argument for the test Java compiler
-     * 
+     *
      * @since 3.6
      */
     @Parameter ( property = "maven.compiler.testRelease" )
@@ -168,7 +168,7 @@ public class TestCompilerMojo
     private LocationManager locationManager = new LocationManager();
 
     private Map<String, JavaModuleDescriptor> pathElements;
-    
+
     private Collection<String> classpathElements;
 
     private Collection<String> modulepathElements;
@@ -215,22 +215,22 @@ public class TestCompilerMojo
     protected void preparePaths( Set<File> sourceFiles )
     {
         File mainOutputDirectory = new File( getProject().getBuild().getOutputDirectory() );
-        
+
         File mainModuleDescriptor = new File( mainOutputDirectory, "module-info.class" );
 
         boolean hasTestModuleDescriptor = false;
-        
-        // Go through the source files to respect includes/excludes 
+
+        // Go through the source files to respect includes/excludes
         for ( File sourceFile : sourceFiles )
         {
             // @todo verify if it is the root of a sourcedirectory?
-            if ( "module-info.java".equals( sourceFile.getName() ) ) 
+            if ( "module-info.java".equals( sourceFile.getName() ) )
             {
                 hasTestModuleDescriptor = true;
                 break;
             }
         }
-        
+
         if ( release != null )
         {
             if ( Integer.valueOf( release ) < 9 )
@@ -254,7 +254,7 @@ public class TestCompilerMojo
             classpathElements = list;
             return;
         }
-            
+
         if ( hasTestModuleDescriptor )
         {
             modulepathElements = testPath;
@@ -268,7 +268,7 @@ public class TestCompilerMojo
             {
                 // very odd
                 // Means that main sources must be compiled with -modulesource and -Xmodule:<moduleName>
-                // However, this has a huge impact since you can't simply use it as a classpathEntry 
+                // However, this has a huge impact since you can't simply use it as a classpathEntry
                 // due to extra folder in between
                 throw new UnsupportedOperationException( "Can't compile test sources "
                     + "when main sources are missing a module descriptor" );
@@ -279,43 +279,44 @@ public class TestCompilerMojo
             if ( mainModuleDescriptor.exists() )
             {
                 ResolvePathsResult<String> result;
-                
+
                 try
                 {
                     ResolvePathsRequest<String> request =
                         ResolvePathsRequest.withStrings( testPath )
                                            .setMainModuleDescriptor( mainModuleDescriptor.getAbsolutePath() );
-                    
+
                     Toolchain toolchain = getToolchain();
                     if ( toolchain != null && toolchain instanceof DefaultJavaToolChain )
                     {
                         request.setJdkHome( ( (DefaultJavaToolChain) toolchain ).getJavaHome() );
                     }
-                    
+
                     result = locationManager.resolvePaths( request );
                 }
                 catch ( IOException e )
                 {
                     throw new RuntimeException( e );
                 }
-                
+
                 JavaModuleDescriptor moduleDescriptor = result.getMainModuleDescriptor();
-                
+
                 pathElements = new LinkedHashMap<String, JavaModuleDescriptor>( result.getPathElements().size() );
                 pathElements.putAll( result.getPathElements() );
-                                
+
                 modulepathElements = result.getModulepathElements().keySet();
-                List<String> list = new ArrayList<>( result.getClasspathElements().size() + additionalClasspathElements.size() );
+                List<String> list = new ArrayList<>( result.getClasspathElements().size()
+                    + additionalClasspathElements.size() );
                 list.addAll( result.getClasspathElements() );
                 list.addAll( additionalClasspathElements );
                 classpathElements = list;
-                
+
                 if ( compilerArgs == null )
                 {
                     compilerArgs = new ArrayList<String>();
                 }
                 compilerArgs.add( "--patch-module" );
-                
+
                 StringBuilder patchModuleValue = new StringBuilder( moduleDescriptor.name() )
                                 .append( '=' )
                                 .append( mainOutputDirectory )
@@ -324,9 +325,9 @@ public class TestCompilerMojo
                 {
                     patchModuleValue.append( root ).append( PS );
                 }
-                
+
                 compilerArgs.add( patchModuleValue.toString() );
-                
+
                 compilerArgs.add( "--add-reads" );
                 compilerArgs.add( moduleDescriptor.name() + "=ALL-UNNAMED" );
             }
@@ -394,7 +395,7 @@ public class TestCompilerMojo
     {
         return testTarget == null ? target : testTarget;
     }
-    
+
     @Override
     protected String getRelease()
     {
